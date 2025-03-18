@@ -9,6 +9,7 @@ const int buildingVoltages[] = {847, 893, 932, 1001}; // array of
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("Hi, welcome to AHHH");
 
 }
 
@@ -16,7 +17,12 @@ void loop() {
   int updateSerial = false;
   // put your main code here, to run repeatedly:
   for(int squareIndex = 0; squareIndex < num_squares; squareIndex++) { //for each square in the array
-    int inputVoltage = analogRead(pinArray[squareIndex]); // find voltage output from that square
+    int inputVoltage = 0; // find voltage output from that square
+    
+    for(int i = 0; i < 30; i++){
+      inputVoltage += analogRead(pinArray[squareIndex]);
+    }
+    inputVoltage = inputVoltage / 30;
     // find corresponding building to output voltage
     int correspondingBuilding = -1; //-1 if no associated building
     for(int buildingIndex = 0; buildingIndex < num_buildings; buildingIndex++) { //for each building voltage, checking to see if voltage falls within tolerance
@@ -31,8 +37,9 @@ void loop() {
     }
   }
   //prints array to serial
-  Serial.print("ArrayState:");
+  
   if(updateSerial){
+    Serial.print("ArrayState:");
     for(int i = 0; i < num_squares; i++){
       //Serial.print("You have just placed ");
       Serial.print(" ");
