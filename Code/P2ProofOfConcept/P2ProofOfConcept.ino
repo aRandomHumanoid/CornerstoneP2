@@ -13,6 +13,7 @@ void setup() {
 }
 
 void loop() {
+  int updateSerial = false;
   // put your main code here, to run repeatedly:
   for(int squareIndex = 0; squareIndex < num_squares; squareIndex++) { //for each square in the array
     int inputVoltage = analogRead(pinArray[squareIndex]); // find voltage output from that square
@@ -24,17 +25,22 @@ void loop() {
         break; // break loop once all buildings are identified
       }
     }
-    boardState[squareIndex] = correspondingBuilding; //current square on the board is assigned the found building
+    if(boardState[squareIndex] != correspondingBuilding){
+      boardState[squareIndex] = correspondingBuilding; //current square on the board is assigned the found building
+      updateSerial = true;
+    }
   }
   //prints array to serial
   Serial.print("ArrayState:");
-  for(int i = 0; i < num_squares; i++){
-    //Serial.print("You have just placed ");
-    Serial.print(" ");
-    Serial.print(boardState[i]+1); // displays the numebr of the building placed,
-    //Serial.print(" on the board!");
+  if(updateSerial){
+    for(int i = 0; i < num_squares; i++){
+      //Serial.print("You have just placed ");
+      Serial.print(" ");
+      Serial.print(boardState[i]+1); // displays the numebr of the building placed,
+      //Serial.print(" on the board!");
+    }
+    Serial.println(); // prints to new line
   }
-  Serial.println(); // prints to new line
 }
 
 
