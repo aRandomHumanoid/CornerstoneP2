@@ -2,7 +2,7 @@ const int numSquares = 4; //total num of squares;
 const int pins[] = {1, 2, 3, 4}; 
 
 const int numBuildings = 5;
-const int buildingVoltages[] = {10, 20, 30, 40, 50};
+const int buildingVoltages[] = {10, 20, 30, 45, 50};
 
 const int tolerance = 5; //tolerance for voltage
 
