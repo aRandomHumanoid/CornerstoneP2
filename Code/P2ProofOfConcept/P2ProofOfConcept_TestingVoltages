@@ -1,0 +1,15 @@
+void loop()
+  // code used to test voltage readings of each building, commented out to run main program
+  int voltage1 = analogRead(pin1);
+  Serial.print(voltage1);
+  int voltage2 = analogRead(pin2);
+  Serial.print(" ");
+  Serial.print(voltage2);
+  int voltage3 = analogRead(pin3); 
+  Serial.print(" ");
+  Serial.print(voltage3);
+  int voltage4 = analogRead(pin4);
+  Serial.print(" ");
+  Serial.print(voltage4);
+  Serial.println(" ");
+
