@@ -3,14 +3,20 @@ const int tolerance = 10; //how much we allow voltage to vary for building, smal
 const int num_squares = 4; // number of building squares
 const int num_buildings = 4; // number of buildings
 
+const int RED_PIN = 9;
+const int GREEN_PIN = 10;
+const int BLUE_PIN = 11;
+
 int boardState[num_squares]; //empty array
 const int buildingVoltages[] = {847, 893, 932, 1001}; // array of 
 
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Hi, welcome to AHHH");
-
+  pinMode(RED_PIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(BLUE_PIN, OUTPUT);
+  setColor(255,255, 255);
 }
 
 void loop() {
@@ -48,6 +54,15 @@ void loop() {
     }
     Serial.println(); // prints to new line
   }
+
+  //updates LED value
+
+}
+
+void setColor(int red, int green, int blue) {
+  analogWrite(RED_PIN, 255 - red);
+  analogWrite(GREEN_PIN, 255 - green);
+  analogWrite(BLUE_PIN, 255 - blue);
 }
 
 
