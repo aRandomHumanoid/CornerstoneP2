@@ -2,21 +2,25 @@ function finalproject()
     filename = 'data_log.csv';    % CSV file name
 
     % Image filenames
-    imageFiles = {'powerplant.jpg', 'school.jpg', 'factory.jpg', ...
-                  'park.jpg', 'house.jpg', 'farm.jpg'};
+    imageFiles = {'park.jpg', 'school.jpg', 'farm.jpg', ...
+                  'factory.jpg', 'house.jpg', 'powerplant.jpg'};
+    
+    % Set up Serial Communication
+    s = serialport("/dev/cu.usbmodem1101", 9600);
+    flush(s);             % Clear any old data
     
     % Descriptions
     imageDescriptions = {
-        'Coal power plants create energy but also release gases that can hurt our air.';
+        'Parks are like the Earths lungs — trees and plants help clean the air by soaking up carbon dioxide.';
         'Turning off lights and electronics when youre not using them can help everyone in the building use less power!';
+        'Solar panels on barns help farms run tractors, lights, and machines without needing as much fossil fuel.';
         'Factories make everything from toys to toothbrushes — but they also use a lot of electricity!';
-        'Parks are like the Earth’s lungs — trees and plants help clean the air by soaking up carbon dioxide.';
         'If everyone in the U.S. switched just one light bulb to an energy-saving LED, we’d save enough energy to light 2.5 million homes for a year!';
-        'Solar panels on barns help farms run tractors, lights, and machines without needing as much fossil fuel.'
+        'Coal power plants create energy but also release gases that can hurt our air.'
     };
 
     % Image Names
-    imageNames = {'Power Plant', 'Apartmennt Building', 'Factory', 'Park', 'House', 'Farm'};
+    imageNames = {'Park', 'School', 'Farm', 'Factory', 'House', 'Power Plant'};
     
     % Create single window
     fig = figure('Name', 'Image Gallery', ...
@@ -34,24 +38,22 @@ function finalproject()
     % Show the main page initially
     showMainPage(appData);
 
-    % Set up Serial Communication
-    serialPort = "COM5";  % Change to your Arduino's port
-    baudRate = 9600;      % Must match Arduino's baud rate
-    s = serialport(serialPort, baudRate);
-    flush(s);             % Clear any old data
+
+    
     
     % Wait for data and read input
     disp("Waiting for data...");
-    
+    values = [0, 0, 0, 0, 0, 0];
     while true
+        changed = false;
         if s.NumBytesAvailable > 0
             data = readline(s); % Read incoming serial data as a string
             disp("Received: " + data);
             
             % Check if the string starts with "ArrayState:"
-            if startsWith(data, "ArrayState: ")
+            if startsWith(data, "ArrayState:")
                 % Extract numeric values after "ArrayState:"
-                numericPart = extractAfter(data, "ArrayState: ");
+                numericPart = extractAfter(data, "ArrayState:");
                 
                 % Convert to array (split by commas, then convert to numbers)
                 prevValues = values;
@@ -60,25 +62,29 @@ function finalproject()
                 % Display the received array
                 disp("Parsed Array:");
                 disp(values);
+                changed = true;
             end
         end
         pause(0.1); % Small delay to avoid busy-waiting
-
-        %finds which building has channged
-        for i = 1:6
-            if values(i) ~= prevValues(i)
-                showImagePage(appData, i); %show fun fact of building 
+        if changed == true
+            disp("Previous Array:");
+            disp(prevValues);
+            %finds which building has channged
+            for i = 1:6
+                if values(i) ~= prevValues(i) && values(i) ~= 0
+                    showImagePage(appData, values(i)); %show fun fact of building
+                    break;
+                end
             end
+            %writes timestamped data to the thing
+            timestamp = datetime("now");
+    
+            % Append to CSV
+            fid = fopen(filename, 'a');
+            fprintf(fid, '%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n', ...
+            timestamp, values(1), values(2), values(3), values(4), values(5), values(6));
+            fclose(fid);
         end
-
-        %writes timestamped data to the thing
-        timestamp = datetime("now", 'yyyy-mm-dd HH:MM:SS.FFF');
-
-        % Append to CSV
-        fid = fopen(filename, 'a');
-        fprintf(fid, '%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n', ...
-        timestamp, data(1), data(2), data(3), data(4), data(5), data(6));
-        fclose(fid);
     end
 end
 

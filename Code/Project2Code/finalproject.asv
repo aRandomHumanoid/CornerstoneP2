@@ -2,21 +2,25 @@ function finalproject()
     filename = 'data_log.csv';    % CSV file name
 
     % Image filenames
-    imageFiles = {'img1.jpg', 'img2.jpg', 'img3.jpg', ...
-                  'img4.jpg', 'img5.jpg', 'img6.jpg'};
+    imageFiles = {'park.jpg', 'school.jpg', 'farm.jpg', ...
+                  'factory.jpg', 'house.jpg', 'powerplant.jpg'};
+    
+    % Set up Serial Communication
+    s = serialport("/dev/cu.usbmodem1101", 9600);
+    flush(s);             % Clear any old data
     
     % Descriptions
     imageDescriptions = {
-        'Coal power plants create energy but also release gases that can hurt our air.';
+        'Parks are like the Earths lungs — trees and plants help clean the air by soaking up carbon dioxide.';
         'Turning off lights and electronics when youre not using them can help everyone in the building use less power!';
         'Factories make everything from toys to toothbrushes — but they also use a lot of electricity!';
-        'Parks are like the Earth’s lungs — trees and plants help clean the air by soaking up carbon dioxide.';
         'If everyone in the U.S. switched just one light bulb to an energy-saving LED, we’d save enough energy to light 2.5 million homes for a year!';
-        'Solar panels on barns help farms run tractors, lights, and machines without needing as much fossil fuel.'
+ 
+        'Coal power plants create energy but also release gases that can hurt our air.'
     };
 
     % Image Names
-    imageNames = {'Power Plant', 'Apartmennt Building', 'Factory', 'Park', 'House', 'Farm'};
+    imageNames = {'Power Plant', 'School', 'Factory', 'Park', 'House', 'Farm'};
     
     % Create single window
     fig = figure('Name', 'Image Gallery', ...
@@ -34,24 +38,23 @@ function finalproject()
     % Show the main page initially
     showMainPage(appData);
 
-    % Set up Serial Communication
-    serialPort = "COM5";  % Change to your Arduino's port
-    baudRate = 9600;      % Must match Arduino's baud rate
-    s = serialport(serialPort, baudRate);
-    flush(s);             % Clear any old data
+
+    
     
     % Wait for data and read input
     disp("Waiting for data...");
     
     while true
+        values = [0, 0, 0, 0, 0, 0];
+        prevValues = values;
         if s.NumBytesAvailable > 0
             data = readline(s); % Read incoming serial data as a string
             disp("Received: " + data);
             
             % Check if the string starts with "ArrayState:"
-            if startsWith(data, "ArrayState: ")
+            if startsWith(data, "ArrayState:")
                 % Extract numeric values after "ArrayState:"
-                numericPart = extractAfter(data, "ArrayState: ");
+                numericPart = extractAfter(data, "ArrayState:");
                 
                 % Convert to array (split by commas, then convert to numbers)
                 prevValues = values;
@@ -66,12 +69,20 @@ function finalproject()
 
         %finds which building has channged
         for i = 1:6
-            if values(i) ~= prevValues(i)
-                showImagePage(appData, i);
+            if values(i) ~= prevValues(i) && values(i) ~= 0
+                showImagePage(appData, values(i)); %show fun fact of building
+                break;
             end
         end
-        %writes timestamped data to the bom
 
+        %writes timestamped data to the thing
+        timestamp = datetime("now");
+
+        % Append to CSV
+        fid = fopen(filename, 'a');
+        fprintf(fid, '%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n', ...
+        timestamp, values(1), values(2), values(3), values(4), values(5), values(6));
+        fclose(fid);
     end
 end
 
