@@ -90,7 +90,7 @@ end
 
 function showMainPage(appData)
     clf(appData.fig);
-    
+    set(appData.fig, 'Color', [0.95, 0.95, 0.95]);  % RGB [R G B]
     % Create a grid of images
     for i = 1:6
         subplot(2, 3, i, 'Parent', appData.fig);
@@ -109,7 +109,7 @@ end
 
 function showImagePage(appData, index)
     clf(appData.fig);
-
+    set(appData.fig, 'Color', [0.95, 0.95, 0.95]);  % RGB [R G B]
     % Create custom axes layout: larger top area for image, smaller bottom for text
     imgAxes = axes(appData.fig, ...
         'Position', [0.05, 0.35, 0.9, 0.6]);  % [x y width height]

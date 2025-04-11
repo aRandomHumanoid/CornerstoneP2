@@ -1,3 +1,4 @@
+
 function finalproject()
     filename = 'data_log.csv';    % CSV file name
 
@@ -13,14 +14,14 @@ function finalproject()
     imageDescriptions = {
         'Parks are like the Earths lungs — trees and plants help clean the air by soaking up carbon dioxide.';
         'Turning off lights and electronics when youre not using them can help everyone in the building use less power!';
+        'Solar panels on barns help farms run tractors, lights, and machines without needing as much fossil fuel.';
         'Factories make everything from toys to toothbrushes — but they also use a lot of electricity!';
         'If everyone in the U.S. switched just one light bulb to an energy-saving LED, we’d save enough energy to light 2.5 million homes for a year!';
- 
         'Coal power plants create energy but also release gases that can hurt our air.'
     };
 
     % Image Names
-    imageNames = {'Power Plant', 'School', 'Factory', 'Park', 'House', 'Farm'};
+    imageNames = {'Park', 'School', 'Farm', 'Factory', 'House', 'Power Plant'};
     
     % Create single window
     fig = figure('Name', 'Image Gallery', ...
@@ -43,10 +44,9 @@ function finalproject()
     
     % Wait for data and read input
     disp("Waiting for data...");
-    
+    values = [0, 0, 0, 0, 0, 0];
     while true
-        values = [0, 0, 0, 0, 0, 0];
-        prevValues = values;
+        changed = false;
         if s.NumBytesAvailable > 0
             data = readline(s); % Read incoming serial data as a string
             disp("Received: " + data);
@@ -63,26 +63,29 @@ function finalproject()
                 % Display the received array
                 disp("Parsed Array:");
                 disp(values);
+                changed = true;
             end
         end
         pause(0.1); % Small delay to avoid busy-waiting
-
-        %finds which building has channged
-        for i = 1:6
-            if values(i) ~= prevValues(i) && values(i) ~= 0
-                showImagePage(appData, values(i)); %show fun fact of building
-                break;
+        if changed == true
+            disp("Previous Array:");
+            disp(prevValues);
+            %finds which building has channged
+            for i = 1:6
+                if values(i) ~= prevValues(i) && values(i) ~= 0
+                    showImagePage(appData, values(i)); %show fun fact of building
+                    break;
+                end
             end
+            %writes timestamped data to the thing
+            timestamp = datetime("now");
+    
+            % Append to CSV
+            fid = fopen(filename, 'a');
+            fprintf(fid, '%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n', ...
+            timestamp, values(1), values(2), values(3), values(4), values(5), values(6));
+            fclose(fid);
         end
-
-        %writes timestamped data to the thing
-        timestamp = datetime("now");
-
-        % Append to CSV
-        fid = fopen(filename, 'a');
-        fprintf(fid, '%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n', ...
-        timestamp, values(1), values(2), values(3), values(4), values(5), values(6));
-        fclose(fid);
     end
 end
 
