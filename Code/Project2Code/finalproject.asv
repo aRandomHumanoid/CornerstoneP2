@@ -1,0 +1,120 @@
+function finalproject()
+    filename = 'data_log.csv';    % CSV file name
+
+    % Image filenames
+    imageFiles = {'img1.jpg', 'img2.jpg', 'img3.jpg', ...
+                  'img4.jpg', 'img5.jpg', 'img6.jpg'};
+    
+    % Descriptions
+    imageDescriptions = {
+        'Coal power plants create energy but also release gases that can hurt our air.';
+        'Turning off lights and electronics when youre not using them can help everyone in the building use less power!';
+        'Factories make everything from toys to toothbrushes — but they also use a lot of electricity!';
+        'Parks are like the Earth’s lungs — trees and plants help clean the air by soaking up carbon dioxide.';
+        'If everyone in the U.S. switched just one light bulb to an energy-saving LED, we’d save enough energy to light 2.5 million homes for a year!';
+        'Solar panels on barns help farms run tractors, lights, and machines without needing as much fossil fuel.'
+    };
+
+    % Image Names
+    imageNames = {'Power Plant', 'Apartmennt Building', 'Factory', 'Park', 'House', 'Farm'};
+    
+    % Create single window
+    fig = figure('Name', 'Image Gallery', ...
+                 'NumberTitle', 'off', ...
+                 'MenuBar', 'none', ...
+                 'ToolBar', 'none', ...
+                 'Position', [100, 100, 800, 600]);
+    
+    % Store shared data
+    appData.imageFiles = imageFiles;
+    appData.imageDescriptions = imageDescriptions;
+    appData.imageNames = imageNames;
+    appData.fig = fig;
+
+    % Show the main page initially
+    showMainPage(appData);
+
+    % Set up Serial Communication
+    serialPort = "COM5";  % Change to your Arduino's port
+    baudRate = 9600;      % Must match Arduino's baud rate
+    s = serialport(serialPort, baudRate);
+    flush(s);             % Clear any old data
+    
+    % Wait for data and read input
+    disp("Waiting for data...");
+    
+    while true
+        if s.NumBytesAvailable > 0
+            data = readline(s); % Read incoming serial data as a string
+            disp("Received: " + data);
+            
+            % Check if the string starts with "ArrayState:"
+            if startsWith(data, "ArrayState: ")
+                % Extract numeric values after "ArrayState:"
+                numericPart = extractAfter(data, "ArrayState: ");
+                
+                % Convert to array (split by commas, then convert to numbers)
+                prevValues = values;
+                values = str2double(strsplit(numericPart, " "));
+                
+                % Display the received array
+                disp("Parsed Array:");
+                disp(values);
+            end
+        end
+        pause(0.1); % Small delay to avoid busy-waiting
+
+        %finds which building has channged
+        for i = 1:6
+            if values(i) ~= prevValues(i)
+                showImagePage(appData, i);
+            end
+        end
+        %writes timestamped data to the bom
+
+    end
+end
+
+function showMainPage(appData)
+    clf(appData.fig);
+    
+    % Create a grid of images
+    for i = 1:6
+        subplot(2, 3, i, 'Parent', appData.fig);
+        img = imread(appData.imageFiles{i});
+        imshow(img);
+        title([appData.imageNames(i)]);
+        
+        h = gca;
+        set(h, 'ButtonDownFcn', @(src, event)showImagePage(appData, i));
+        % Make sure the image itself is clickable
+        if ~isempty(h.Children)
+            set(h.Children, 'ButtonDownFcn', @(src, event)showImagePage(appData, i));
+        end
+    end
+end
+
+function showImagePage(appData, index)
+    clf(appData.fig);
+
+    % Create custom axes layout: larger top area for image, smaller bottom for text
+    imgAxes = axes(appData.fig, ...
+        'Position', [0.05, 0.35, 0.9, 0.6]);  % [x y width height]
+    imshow(imread(appData.imageFiles{index}), 'Parent', imgAxes);
+    title(imgAxes, [appData.imageNames(index)], 'FontSize', 14);
+
+    % Centered description text
+    textAxes = axes(appData.fig, ...
+        'Position', [0.05, 0.05, 0.9, 0.25]);
+    axis(textAxes, 'off');
+    text(textAxes, 0.5, 0.5, appData.imageDescriptions{index}, ...
+        'HorizontalAlignment', 'center', ...
+        'VerticalAlignment', 'middle', ...
+        'FontSize', 14, ...
+        'Units', 'normalized');
+
+    % Wait before returning to the main page
+    pause(3);
+    showMainPage(appData);
+end
+
